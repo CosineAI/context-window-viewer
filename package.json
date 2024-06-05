@@ -1,0 +1,32 @@
+{
+  "name": "@cosine/context-window-viewer",
+  "version": "0.0.0",
+  "description": "A tool to view context windows in the browser",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "private": true,
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsx src/build.ts",
+    "dev": "tsx watch src/server.ts"
+  },
+  "author": "Cosine Engineers <tech@cosine.sh>",
+  "license": "MIT",
+  "files": [
+    "/dist"
+  ],
+  "dependencies": {
+    "@hono/node-server": "^1.11.2",
+    "hono": "^4.4.3",
+    "ndjson": "^2.0.0",
+    "tsx": "^4.11.2"
+  },
+  "devDependencies": {
+    "@types/listify": "^1.0.0",
+    "@types/ndjson": "^2.0.4",
+    "@types/node": "^20.11.5",
+    "typescript": "^5.2.2"
+  }
+}

@@ -1,0 +1,1 @@
+{"messages":[{"role":"system","content":"Example"},{"role":"user","content":"Example"},{"role":"assistant","content":"Example"}],"meta":{"id":"context_window_4","run_id":"run_id_1","tiktoken_context_window_length":100,"claude_context_length":100,"num_messages":4,"final_state":{"content": "Final state"}}}
