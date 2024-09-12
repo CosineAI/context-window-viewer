@@ -151,9 +151,10 @@ ${displayMessages(window)}
 <h1 id="end" class="text-2xl text-center pt-8"> END of Context </h1>
 <a href="#top-of-chat" class="block text-center pb-6 text-pink-500 font-2xl underline">Back to Top</a>
 
-<h1 class="text-2xl font-bold">Final State: </h1>
+<h1 class="text-2xl font-bold">Final State Content: </h1>
 <div class="font-mono break-words whitespace-pre-wrap">
-${window.meta.final_state.content}
+<input type="text" value="${window.meta.final_state.content}" />
+<button>Save</button>
 </div>
 
 
@@ -170,6 +171,49 @@ ${window.meta.final_state.content}
     }
   },
 )
+
+app.post("/context/:id/save/", async (c) => {
+  const id = c.req.param("id")
+  const finalStateContent = c.req.param("final_state_content")
+
+  const data = await getData(id)
+
+  const out = []
+
+  const stream = fs
+    .createReadStream("./context_windows.jsonl")
+    .pipe(ndjson.parse())
+    .on("data", async (obj) => {
+      if (obj.meta.id === id) {
+        obj.meta.final_state.content = finalStateContent
+        out.push(obj)
+      } else {
+        out.push(obj)
+      }
+    })
+
+  stream.on("end", () => {
+    const writeStream = fs.createWriteStream("./context_windows.jsonl")
+
+    out.forEach((obj) => {
+      writeStream.write(JSON.stringify(obj) + "\n")
+    })
+
+    writeStream.end()
+
+    return c.text("Saved", 200)
+  })
+
+  stream.on("close", () => {
+    return c.text("Saved", 200)
+  })
+
+  stream.on("error", () => {
+    return c.text("Error", 500)
+  })
+
+  return c.text("Error", 500)
+})
 
 app.get(
   "/context/:id/json/",
