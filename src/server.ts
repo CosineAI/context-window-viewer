@@ -172,6 +172,49 @@ ${displayMessages(window)}
   },
 )
 
+app.post("/context/:id/save/", async (c) => {
+  const id = c.req.param("id")
+  const finalStateContent = c.req.param("final_state_content")
+
+  const data = await getData(id)
+
+  const out = []
+
+  const stream = fs
+    .createReadStream("./context_windows.jsonl")
+    .pipe(ndjson.parse())
+    .on("data", async (obj) => {
+      if (obj.meta.id === id) {
+        obj.meta.final_state.content = finalStateContent
+        out.push(obj)
+      } else {
+        out.push(obj)
+      }
+    })
+
+  stream.on("end", () => {
+    const writeStream = fs.createWriteStream("./context_windows.jsonl")
+
+    out.forEach((obj) => {
+      writeStream.write(JSON.stringify(obj) + "\n")
+    })
+
+    writeStream.end()
+
+    return c.text("Saved", 200)
+  })
+
+  stream.on("close", () => {
+    return c.text("Saved", 200)
+  })
+
+  stream.on("error", () => {
+    return c.text("Error", 500)
+  })
+
+  return c.text("Error", 500)
+})
+
 app.get(
   "/context/:id/json/",
   ssgParams(async () => {
