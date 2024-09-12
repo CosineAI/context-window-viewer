@@ -151,9 +151,10 @@ ${displayMessages(window)}
 <h1 id="end" class="text-2xl text-center pt-8"> END of Context </h1>
 <a href="#top-of-chat" class="block text-center pb-6 text-pink-500 font-2xl underline">Back to Top</a>
 
-<h1 class="text-2xl font-bold">Final State: </h1>
+<h1 class="text-2xl font-bold">Final State Content: </h1>
 <div class="font-mono break-words whitespace-pre-wrap">
-${window.meta.final_state.content}
+<input type="text" value="${window.meta.final_state.content}" />
+<button>Save</button>
 </div>
 
 
