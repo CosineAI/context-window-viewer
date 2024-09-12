@@ -105,6 +105,11 @@ const displayMessages = (data: any): string => {
     } break-words whitespace-pre-wrap font-mono" >
       ${msg.content}
     </div>
+    <form action="/context/${data.meta.id}/update" method="POST">
+      <textarea name="content" class="w-full h-32">${msg.content}</textarea>
+      <input type="hidden" name="index" value="${index}" />
+      <button type="submit" class="bg-blue-500 text-white p-2 rounded-md">Submit</button>
+    </form>
   `,
     )
     .join("")
@@ -170,6 +175,51 @@ ${window.meta.final_state.content}
     }
   },
 )
+
+app.post("/context/:id/update", async (c) => {
+  const id = c.req.param("id")
+  const body = await c.req.parseBody()
+
+  const index = parseInt(body.index)
+  const content = body.content
+
+  const windows = await getMetadata()
+
+  const data: any[] = []
+
+  await new Promise((resolve) => {
+    fs.createReadStream("./context_windows.jsonl")
+      .pipe(ndjson.parse())
+      .on("data", async (obj) => {
+        data.push(obj)
+      })
+      .on("end", () => {
+        resolve(data)
+      })
+  })
+
+  const window = data.find((w) => w.meta.id === id)
+
+  if (!window) {
+    return c.text("Not found", 404)
+  }
+
+  window.messages[index].content = content
+
+  await new Promise((resolve) => {
+    const stream = fs.createWriteStream("./context_windows.jsonl")
+
+    data.forEach((obj) => {
+      stream.write(JSON.stringify(obj) + "\n")
+    })
+
+    stream.end(() => {
+      resolve(null)
+    })
+  })
+
+  return c.redirect(`/context/${id}/`)
+})
 
 app.get(
   "/context/:id/json/",
