@@ -1,4 +1,5 @@
 import fs from "fs"
+import { readFile, writeFile } from "fs/promises"
 import ndjson from "ndjson"
 import { Hono } from "hono"
 import { serve } from "@hono/node-server"
@@ -52,6 +53,21 @@ const getMetadata = async (): Promise<ContextMeta[]> => {
         resolve(data)
       })
   })
+}
+
+const updateContextWindow = async (id: string, newData: any) => {
+  const data = await readFile("./context_windows.jsonl", "utf8")
+  const lines = data.split("\n")
+  const updatedLines = lines.map((line) => {
+    if (line.trim() === "") return ""
+    const json = JSON.parse(line)
+    if (json.meta.id === id) {
+      return JSON.stringify(newData)
+    }
+    return line
+  })
+
+  await writeFile("./context_windows.jsonl", updatedLines.join("\n"))
 }
 
 const app = new Hono()
@@ -139,6 +155,18 @@ app.get(
 <p>Number of Messages: ${window.meta.num_messages}</p>
 <p><span class="text-sm">Context Length:</span><br />${window.meta.tiktoken_context_window_length.toLocaleString()} tokens (TikToken)<br />
 ${window.meta.claude_context_length.toLocaleString()} tokens (Claude)</p>
+<a href="./json/index.json" class="underline text-gray-500">View as json</a> | <a href="#end" class="underline text-pink-500">Jump to End</a> | <a href="./edit/" class="underline text-blue-500">Edit</a>
+</div>
+</head>
+<body class="bg-gray-100 flex flex-row">
+<div id="top" class="sticky top-5 mt-2 m-auto w-full text-center">
+<a href="/" class="underline text-gray-500"><- Back to Index</a> 
+<h1 class="">Currently Viewing</h1>
+<h2 class="text-2xl font-bold">${id}</h2>
+<p>Run ID: ${window.meta.run_id}</p>
+<p>Number of Messages: ${window.meta.num_messages}</p>
+<p><span class="text-sm">Context Length:</span><br />${window.meta.tiktoken_context_window_length.toLocaleString()} tokens (TikToken)<br />
+${window.meta.claude_context_length.toLocaleString()} tokens (Claude)</p>
 <a href="./json/index.json" class="underline text-gray-500">View as json</a> | <a href="#end" class="underline text-pink-500">Jump to End</a>
 </div>
     <div class="flex flex-col items-center justify-center">
@@ -171,6 +199,7 @@ ${window.meta.final_state.content}
   },
 )
 
+
 app.get(
   "/context/:id/json/",
   ssgParams(async () => {
@@ -192,6 +221,63 @@ app.get(
     }
   },
 )
+
+app.get(
+  "/context/:id/edit/",
+  ssgParams(async () => {
+    const windows = await getMetadata()
+    return windows.map((w) => ({ id: w.id }))
+  }),
+  async (c) => {
+    const id = c.req.param("id")
+
+    try {
+      const window = await getData(id)
+
+      return c.html(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${id} | Context Viewer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</html>
+</body>
+</html>
+</html>`)
+    } catch (e: any) {
+      if (e instanceof Error) {
+        return c.text(e.message, 500)
+      }
+      return c.text("Not found", 404)
+    }
+  },
 
 //eslint-disable-next-line
 console.log("Starting server on http://localhost:8787")
