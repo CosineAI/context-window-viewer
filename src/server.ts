@@ -102,7 +102,8 @@ const displayMessages = (data: any): string => {
 </div>
     <div  class="px-6 pb-6 rounded-md ${
       msg.role === "assistant" ? "bg-gray-200" : msg.role === "system" ? "bg-pink-400 text-white" : "bg-blue-500 text-white"
-    } break-words whitespace-pre-wrap font-mono" >
+      <textarea id="message-content-${index}" class="w-full bg-transparent border-none focus:outline-none focus:ring-0">${msg.content}</textarea>
+      <button onclick="saveMessage(${index})" class="bg-pink-300 rounded-md p-2 hover:bg-pink-500 hover:text-white">Save</button>
       ${msg.content}
     </div>
   `,
