@@ -129,6 +129,23 @@ app.get(
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${id} | Context Viewer</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+  const saveMessage = async (index) => {
+    const content = document.getElementById('message-content-' + index).value
+    const res = await fetch('/context/${id}/save/', {
+      method: 'POST',
+      body: JSON.stringify({
+        index,
+        content,
+      })
+    })
+    if (res.ok) {
+      alert('Saved!')
+    } else {
+      alert('Failed to save')
+    }
+  }
+  </script>
 </head>
 <body class="bg-gray-100 flex flex-row">
 <div id="top" class="sticky top-5 mt-2 m-auto w-full text-center">
@@ -171,6 +188,28 @@ ${window.meta.final_state.content}
   },
 )
 
+app.post(
+  "/context/:id/save/",
+  ssgParams(async () => {
+    const windows = await getMetadata()
+    return windows.map((w) => ({ id: w.id }))
+  }),
+  async (c) => {
+    const id = c.req.param("id")
+    const { index, content } = await c.req.json()
+
+    try {
+      const window = await getData(id)
+      window.messages[index].content = content
+
+      const outStream = fs.createWriteStream("./context_windows.jsonl", { flags: "w" })
+      outStream.write(JSON.stringify(window) + "\n")
+      outStream.end()
+
+      return c.text("Saved!")
+    } catch (e: any) {
+      if (e instanceof Error) {
+        return c.text(e.message, 500)
 app.get(
   "/context/:id/json/",
   ssgParams(async () => {
